@@ -7,7 +7,9 @@ router.get('/indiaspend', function(req, res, next) {
         console.log(data);
         res.send(data);
     }).catch(function(e) {
-        res.json(e);
+        res.json({
+            "error-msg" : e
+        });
     });
 });
 
