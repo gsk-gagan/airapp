@@ -5,8 +5,8 @@ module.exports = function() {
         console.log('Starting to insert Data');
 
         var testData = {
-            "imei" : "234234",
-            "name" : "test Location",
+            "imei" : "234233",
+            "name" : "test Location 2",
             "lat" : 332.234,
             "lng" : 23423.13
         };

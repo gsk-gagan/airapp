@@ -2,3 +2,4 @@
 .idea
 npm-debug.log
 *.sqlite
+.DS_Store
