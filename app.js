@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
+var manual = require('./routes/manual');
 
 var app = express();
 
@@ -17,6 +18,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+//The path here is relative
 app.use('/', index);
+app.use('/api', manual);
 
 module.exports = app;
