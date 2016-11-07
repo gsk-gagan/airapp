@@ -1,10 +1,11 @@
 var express = require('express');
-var testDB = require('../manual/tempInsert');
+var writeTable = require('../manual/tempInsert');
+var readTable = require('../manual/tempRead');
 var router = express.Router();
 
 /* GET home page. */
 router.get('/manual', function (req, res, next) {
-    testDB().then(function(record) {
+    writeTable().then(function(record) {
         console.log('Inserted Successfully');
         console.log(record);
         res.status(200);
@@ -20,6 +21,14 @@ router.get('/manual', function (req, res, next) {
             "status" : "Failure",
             "error-msg" : error
         });
+    });
+});
+
+router.get('/manual/read', function(req, res, next) {
+    readTable().then(function(records) {
+        res.json(records);
+    }).catch(function(e) {
+        res.json(e);
     });
 });
 

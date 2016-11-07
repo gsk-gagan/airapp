@@ -1,18 +1,21 @@
 var db = require('../db');
+var inputRecords = require('./issource');
 
 module.exports = function() {
     return new Promise(function(resolve, reject) {
         console.log('Starting to insert Data');
 
-        var testData = {
-            "imei" : "234233",
-            "name" : "test Location 2",
-            "lat" : 332.234,
-            "lng" : 23423.13
-        };
+        var toInsert = [];
+
+        inputRecords.forEach(function(record) {
+            toInsert.push({
+                imei : record['parent-value'],
+                name : record.parent.substr(record['parent-value'].length+1)
+            });
+        });
 
         db.indiaSpendCrawler
-            .create(testData)
+            .bulkCreate(toInsert)
             .then(function(record) {
                 resolve(record);
             })
