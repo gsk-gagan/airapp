@@ -26,12 +26,12 @@ module.exports = function(imei) {
                     var jsonData = JSON.parse(body.join(''));
                     var result = insertToDB(jsonData.graphData);
 
-                    if(result) {
+                    if(result.success) {
                         console.log('Converted to Custom Data Record');
-                        console.log(result);
-                        resolve(result);
+                        console.log(result.data);
+                        resolve(result.data);
                     } else {
-                        reject({"error" : "Unable to convert data"});
+                        reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
                     }
                     // resolve(body.join(''));
                 });
@@ -45,25 +45,34 @@ module.exports = function(imei) {
 
 function insertToDB(data) {
     var resultData = {};
-    data.forEach(function(record) {
-        switch (record.label) {
-            case "AQI":
-                resultData.aqi = Math.trunc(record.data[0][1]);
-                resultData.createtime = new Date(record.data[0][0]);
-                break;
-            case "PM25":
-                resultData.pm25 = Math.trunc(record.data[0][1]);
-                break;
-            case "PM10":
-                resultData.pm10 = Math.trunc(record.data[0][1]);
-                break;
-            case "WindSpeed":
-                resultData.windspeed = record.data[0][1];
-                break;
-            case "WindDir":
-                resultData.winddirection = record.data[0][1];
-                break;
-        }
-    });
-    return resultData;
+    var isSuccessfull = true;
+    try {
+        data.forEach(function(record) {
+            switch (record.label) {
+                case "AQI":
+                    resultData.aqi = Math.trunc(record.data[0][1]);
+                    resultData.createtime = new Date(record.data[0][0]);
+                    break;
+                case "PM25":
+                    resultData.pm25 = Math.trunc(record.data[0][1]);
+                    break;
+                case "PM10":
+                    resultData.pm10 = Math.trunc(record.data[0][1]);
+                    break;
+                case "WindSpeed":
+                    resultData.windspeed = record.data[0][1];
+                    break;
+                case "WindDir":
+                    resultData.winddirection = record.data[0][1];
+                    break;
+            }
+        });
+    } catch(e) {
+        isSuccessfull = false;
+    }
+
+    return {
+        success: isSuccessfull,
+        data: resultData
+    };
 }
