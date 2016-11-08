@@ -12,30 +12,40 @@ module.exports = function(imei) {
 
             // console.log(url);
 
-            var request = http.get(url, function(response) {
-                if (response.statusCode < 200 || response.statusCode > 299) {
-                    reject({'error': 'Failed to load page, status code: ' + response.statusCode});
-                }
-
-                var body = [];
-
-                response.on('data', function(chunk) {
-                    body.push(chunk);
-                });
-                response.on('end', function() {
-                    var jsonData = JSON.parse(body.join(''));
-                    var result = insertToDB(jsonData.graphData);
-
-                    if(result.success) {
-                        // console.log('Converted to Custom Data Record');
-                        // console.log(result.data);
-                        resolve(result.data);
-                    } else {
-                        reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
+            try {
+                var request = http.get(url, function(response) {
+                    if (response.statusCode < 200 || response.statusCode > 299) {
+                        reject({'error': 'Failed to load page, status code: ' + response.statusCode});
                     }
-                    // resolve(body.join(''));
+
+                    var body = [];
+
+                    response.on('data', function(chunk) {
+                        body.push(chunk);
+                    });
+                    response.on('end', function() {
+                        var jsonData = JSON.parse(body.join(''));
+                        var result = insertToDB(jsonData.graphData);
+
+                        if(result.success) {
+                            // console.log('Converted to Custom Data Record');
+                            // console.log(result.data);
+                            resolve(result.data);
+                        } else {
+                            reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
+                        }
+                        // resolve(body.join(''));
+                    });
                 });
-            });
+
+                //To handel connection timeout
+                request.on('error', function(err) {
+                    reject(err);
+                });
+
+            } catch (e) {
+                reject(e);
+            }
 
         } else {
             reject({"error" : "IMEI number not provided"});

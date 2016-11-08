@@ -69,11 +69,28 @@ function insertAQI() {
     console.log('Starting Insert to DB');
 
     db.aqiAll.bulkCreate(success).then(function(records) {
-        console.log('Insert to Source Success');
-        console.log(records);
+        //console.log('Insert to Source Success');
+        //console.log(records);
+        insertLatestAQI(0);
     }).catch(function(e) {
-        console.log('Insert Error');
-        console.log(e);
+        //console.log('Insert Error');
+        //console.log(e);
+        insertLatestAQI(0);
     });
 
+
+}
+
+function insertLatestAQI(index) {
+    if(index >= success.length)
+        return;
+    db.aqiLatest.upsert(success[index]).then(function(record) {
+        console.log('Insert to Latest AQI');
+        console.log(record);
+        insertLatestAQI(++index);
+    }).catch(function(e) {
+        console.log('Unable to UPSERT!!!');
+        console.log(e);
+        insertLatestAQI(++index);
+    });
 }
