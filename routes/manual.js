@@ -1,10 +1,11 @@
 var express = require('express');
 var writeTable = require('../manual/tempInsert');
 var readTable = require('../manual/tempRead');
+var insertSourceTable = require('../manual/insertSource');
 var router = express.Router();
 
 /* GET home page. */
-router.get('/manual', function (req, res, next) {
+router.get('/manual/first', function (req, res, next) {
     writeTable().then(function(record) {
         console.log('Inserted Successfully');
         console.log(record);
@@ -24,8 +25,16 @@ router.get('/manual', function (req, res, next) {
     });
 });
 
-router.get('/manual/read', function(req, res, next) {
+router.get('/manual/first/read', function(req, res, next) {
     readTable().then(function(records) {
+        res.json(records);
+    }).catch(function(e) {
+        res.json(e);
+    });
+});
+
+router.get('/manual/second', function(req, res, next) {
+    insertSourceTable().then(function(records) {
         res.json(records);
     }).catch(function(e) {
         res.json(e);

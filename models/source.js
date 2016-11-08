@@ -1,7 +1,7 @@
 module.exports = function(sequelize, DataTypes) {
     return sequelize.define('source', {
-        sourceid : {
-            type: DataTypes.INTEGER,
+        sourcecode : {
+            type: DataTypes.STRING,     //This is used to vaguely-uniquely identify the source. For India Spend we will have imei
             allowNull: false,
             unique: true
         },
@@ -18,10 +18,6 @@ module.exports = function(sequelize, DataTypes) {
             type: DataTypes.FLOAT,
             allowNull: false,
             defaultValue: -1.0
-        },
-        createtime : {
-            type: DataTypes.DATE,
-            allowNull: false
         }
     });
 };
