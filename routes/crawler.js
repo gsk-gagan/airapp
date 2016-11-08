@@ -11,6 +11,9 @@ router.get('/indiaspend', function(req, res, next) {
 
 
     db.indiaSpendCrawler.findAll().then(function(allRecords) {
+        i=0;
+        errors=[];
+        success=[];
         allRecords.forEach(function(record) {
             crawlerFunction(record.imei).then(function(data) {
                 success.push({
@@ -18,20 +21,31 @@ router.get('/indiaspend', function(req, res, next) {
                     data : data
                 });
                 i++;
+
+                console.log('Completed ' + i + '/' + allRecords.length);
+                if(i >= allRecords.length) {
+                    res.json({
+                        "errors" : errors,
+                        "success" : success
+                    });
+                }
             }).catch(function(e) {
                 errors.push({
                     imei : record.imei,
                     error : e
                 });
                 i++;
+
+                console.log('Completed ' + i + '/' + allRecords.length);
+                if(i >= allRecords.length) {
+                    res.json({
+                        "errors" : errors,
+                        "success" : success
+                    });
+                }
             });
-            if(i >= allRecords.length) {
-                res.json({
-                    "errors" : errors,
-                    "success" : success
-                });
-            }
-            console.log('Completed ' + i + '/' + allRecords.length);
+
+
         });
     }).catch(function(e) {
         console.log('ERROR Reading records');

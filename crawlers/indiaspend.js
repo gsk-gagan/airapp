@@ -4,13 +4,13 @@ var moment = require('moment');
 module.exports = function(imei) {
     return new Promise(function(resolve, reject) {
         if(imei) {
-            var startTime = moment().subtract(1, 'hours').format('YYYYMMDDhhmmss');
-            console.log(startTime);
-            var endTime = moment().format('YYYYMMDDhhmmss');
+            var endTime = moment().format('YYYYMMDDHHMMSS');
+            var startTime = moment().subtract(1, 'hours').format('YYYYMMDDHHMMSS');
+
             var url = 'http://api.indiaspend.org/dashboard/dashboard?imei=' +
                 imei + '&hrs=1&sdate=' + startTime.toString() + '&edate=' + endTime.toString() + '&type=graphJson&flag=graphdata';
 
-            console.log(url);
+            // console.log(url);
 
             var request = http.get(url, function(response) {
                 if (response.statusCode < 200 || response.statusCode > 299) {
@@ -27,8 +27,8 @@ module.exports = function(imei) {
                     var result = insertToDB(jsonData.graphData);
 
                     if(result.success) {
-                        console.log('Converted to Custom Data Record');
-                        console.log(result.data);
+                        // console.log('Converted to Custom Data Record');
+                        // console.log(result.data);
                         resolve(result.data);
                     } else {
                         reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
