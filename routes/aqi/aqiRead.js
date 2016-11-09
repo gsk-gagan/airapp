@@ -1,4 +1,4 @@
-var db = require('../db');
+var db = require('../../db');
 
 module.exports = function(isLatest) {
     return new Promise(function(resolve, reject) {
@@ -44,12 +44,3 @@ module.exports = function(isLatest) {
         });
     });
 };
-
-//
-//var map = {};
-//// add a item
-//map[key1] = value1;
-//// or remove it
-//delete map[key1];
-//// or determine whether a key exists
-//key1 in map;

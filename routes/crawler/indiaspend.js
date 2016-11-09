@@ -10,8 +10,6 @@ module.exports = function(imei) {
             var url = 'http://api.indiaspend.org/dashboard/dashboard?imei=' +
                 imei + '&hrs=1&sdate=' + startTime.toString() + '&edate=' + endTime.toString() + '&type=graphJson&flag=graphdata';
 
-            // console.log(url);
-
             try {
                 var request = http.get(url, function(response) {
                     if (response.statusCode < 200 || response.statusCode > 299) {
@@ -23,18 +21,16 @@ module.exports = function(imei) {
                     response.on('data', function(chunk) {
                         body.push(chunk);
                     });
+
                     response.on('end', function() {
                         var jsonData = JSON.parse(body.join(''));
                         var result = insertToDB(jsonData.graphData);
 
                         if(result.success) {
-                            // console.log('Converted to Custom Data Record');
-                            // console.log(result.data);
                             resolve(result.data);
                         } else {
                             reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
                         }
-                        // resolve(body.join(''));
                     });
                 });
 

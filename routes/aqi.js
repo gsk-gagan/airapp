@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var aqiRead = require('../db/aqiRead');
+var aqiRead = require('./aqi/aqiRead');
 
 /* GET home page. */
 router.get('/', function (req, res, next) {

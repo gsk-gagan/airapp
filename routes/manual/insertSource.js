@@ -1,4 +1,5 @@
-var db = require('../db');
+var db = require('../../db');
+var constants = require('../../commons/constants');
 
 module.exports = function() {
     return new Promise(function(resolve, reject) {
@@ -10,7 +11,7 @@ module.exports = function() {
             allRecords.forEach(function(record) {
                 toInsert.push({
                     sourcecode : record.imei,
-                    sourcetype : 'indiaSpend',
+                    sourcetype : constants.INDIA_SPEND,
                     lat : record.lat,
                     lng : record.lng
                 });

@@ -1,7 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var crawlerFunction = require('../crawlers/indiaspend');
+var crawlerFunction = require('./crawler/indiaspend');
 var db = require('../db');
+var constants = require('../commons/constants');
 
 var i=0;
 var errors = [];
@@ -9,15 +10,17 @@ var success = [];
 var hasInserted = false;
 
 router.get('/indiaspend', function(req, res, next) {
-
-
-    db.indiaSpendCrawler.findAll().then(function(allRecords) {
+    db.source.findAll({
+        where : {
+            sourcetype : constants.INDIA_SPEND
+        }
+    }).then(function(allRecords) {
         i=0;
         errors=[];
         success=[];
         hasInserted = false;
         allRecords.forEach(function(record) {
-            crawlerFunction(record.imei).then(function(data) {
+            crawlerFunction(record.sourcecode).then(function(data) {
                 success.push({
                     sourceid : record.id,
                     aqi : data.aqi,
@@ -55,8 +58,6 @@ router.get('/indiaspend', function(req, res, next) {
                     hasInserted = true;
                 }
             });
-
-
         });
     }).catch(function(e) {
         console.log('ERROR Reading records');
@@ -77,8 +78,6 @@ function insertAQI() {
         //console.log(e);
         insertLatestAQI(0);
     });
-
-
 }
 
 function insertLatestAQI(index) {
