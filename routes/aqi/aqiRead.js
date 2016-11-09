@@ -2,7 +2,7 @@ var db = require('../../db');
 
 module.exports = function(isLatest) {
     return new Promise(function(resolve, reject) {
-        console.log('Starting to read Data from AQILatest');
+        console.log('Starting to read Data from AQI');
 
         db.source.findAll().then(function(allRecords) {
             console.log('Total Sources : ' + allRecords.length);
