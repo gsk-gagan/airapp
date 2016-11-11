@@ -4,11 +4,13 @@ var moment = require('moment');
 module.exports = function(imei) {
     return new Promise(function(resolve, reject) {
         if(imei) {
-            var endTime = moment().format('YYYYMMDDHHMMSS');
-            var startTime = moment().subtract(1, 'hours').format('YYYYMMDDHHMMSS');
+            var endTime = moment().format('YYYYMMDDHHmmss');
+            var startTime = moment().subtract(1, 'hours').format('YYYYMMDDHHmmss');
 
             var url = 'http://api.indiaspend.org/dashboard/dashboard?imei=' +
                 imei + '&hrs=1&sdate=' + startTime.toString() + '&edate=' + endTime.toString() + '&type=graphJson&flag=graphdata';
+
+            console.log(url);
 
             try {
                 var request = http.get(url, function(response) {
@@ -57,7 +59,7 @@ function insertToDB(data) {
             switch (record.label) {
                 case "AQI":
                     resultData.aqi = Math.trunc(record.data[0][1]);
-                    resultData.createtime = new Date(record.data[0][0]);
+                    resultData.createtime = new Date(record.data[0][0] + 3600000*5.5);      //+0530 India
                     break;
                 case "PM25":
                     resultData.pm25 = Math.trunc(record.data[0][1]);

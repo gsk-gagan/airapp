@@ -5,12 +5,9 @@ var db = require('../db');
 
 router.get('/', function (req, res, next) {
     var filter = getQueryParams(req.query);
-    if(req.query.hasOwnProperty('limit')) {
-        filter.limit = req.query.limit;
-    }
 
     aqiRead().then(function(allRecords) {
-        res.json(allRecords);
+        res.json(filterResult(allRecords, filter));
     }).catch(function(e) {
         res.json({
             "error" : e
@@ -78,6 +75,31 @@ function getQueryParams(query) {
 
     if(query.hasOwnProperty('limit')) {
         result.limit = parseInt(query.limit);
+    }
+
+    return result;
+}
+
+function filterResult(allRecords, filter) {
+    var tempResult;
+    var result = [];
+    //filter all based on lat lng and order appropriately
+    if(filter.hasOwnProperty('lat')) {
+        tempResult = allRecords.sort(function(a, b) {
+            var disa = ((a.lat - filter.lat)*(a.lat - filter.lat)) + ((a.lng - filter.lng)*(a.lng - filter.lng));
+            var disb = ((b.lat - filter.lat)*(b.lat - filter.lat)) + ((b.lng - filter.lng)*(b.lng - filter.lng));
+            return disa-disb;
+        });
+    } else {
+        tempResult = allRecords;
+    }
+    //limit the number of results
+    if(filter.hasOwnProperty('limit')) {
+        for(var i=0; i<allRecords.length && i<filter.limit; i++) {
+            result.push(tempResult[i]);
+        }
+    } else {
+        result = tempResult;
     }
 
     return result;

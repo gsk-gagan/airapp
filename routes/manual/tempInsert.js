@@ -9,8 +9,10 @@ module.exports = function() {
 
         inputRecords.forEach(function(record) {
             toInsert.push({
-                imei : record['parent-value'],
-                name : record.parent.substr(record['parent-value'].length+1)
+                imei : record['imei'],
+                name : record['name'],
+                lat : record['lat'],
+                lng : record['lng']
             });
         });
 

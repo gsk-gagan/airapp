@@ -22,7 +22,7 @@ router.get('/indiaspend', function(req, res, next) {
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.INDIA_SPEND_CRAWL_TIME);
-    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(15, 'minutes'))
+    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(1, 'minutes'))
         recentRequest = true;
 
     if(recentRequest) {
@@ -32,8 +32,10 @@ router.get('/indiaspend', function(req, res, next) {
         return;
     }
 
+    //Added so that newer crawl does not start before 15 minutes
     recentRequest = true;
     storage.setItemSync(constants.INDIA_SPEND_CRAWL_TIME, moment());
+
     db.source.findAll({
         where : {
             sourcetype : constants.INDIA_SPEND
