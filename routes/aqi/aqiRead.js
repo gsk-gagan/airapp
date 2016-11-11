@@ -1,6 +1,6 @@
 var db = require('../../db');
 
-module.exports = function(isLatest) {
+module.exports = function() {
     return new Promise(function(resolve, reject) {
         console.log('Starting to read Data from AQI');
 
@@ -14,9 +14,8 @@ module.exports = function(isLatest) {
                 };
             });
 
-            var aqiConn = isLatest ? db.aqiLatest : db.aqiAll;
 
-            aqiConn.findAll().then(function(allData) {
+            db.aqiLatest.findAll().then(function(allData) {
                 console.log('Total Records : ' + allData.length);
                 var result = [];
                 allData.forEach(function(datum) {

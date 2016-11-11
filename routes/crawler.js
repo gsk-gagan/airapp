@@ -1,24 +1,44 @@
 var express = require('express');
+var storage = require('node-persist');
+var moment = require('moment');
 var router = express.Router();
 var crawlerFunction = require('./crawler/indiaspend');
 var db = require('../db');
 var constants = require('../commons/constants');
 
+storage.initSync();
+
 var i=0;
 var errors = [];
 var success = [];
 var hasInserted = false;
+var recentRequest = false;
 
 router.get('/indiaspend', function(req, res, next) {
+    i=0;
+    errors=[];
+    success=[];
+    hasInserted = false;
+    recentRequest = false;
+
+    var lastCrawlTime = storage.getItemSync(constants.INDIA_SPEND_CRAWL_TIME);
+    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(15, 'minutes'))
+        recentRequest = true;
+
+    if(recentRequest) {
+        res.json({
+            "error" : "Last crawl not more than 15 minutes ago. So, not crawling again"
+        });
+        return;
+    }
+
+    recentRequest = true;
+    storage.setItemSync(constants.INDIA_SPEND_CRAWL_TIME, moment());
     db.source.findAll({
         where : {
             sourcetype : constants.INDIA_SPEND
         }
     }).then(function(allRecords) {
-        i=0;
-        errors=[];
-        success=[];
-        hasInserted = false;
         allRecords.forEach(function(record) {
             crawlerFunction(record.sourcecode).then(function(data) {
                 success.push({

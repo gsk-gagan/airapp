@@ -4,24 +4,12 @@ var aqiRead = require('./aqi/aqiRead');
 var db = require('../db');
 
 router.get('/', function (req, res, next) {
-    //var queryParams = getQueryParams(req.query);
-    aqiRead(true).then(function(allRecords) {
-        var filterRecords = allRecords;
-        //if(queryParams.isValid) {
-        //
-        //} else {
-        //    filterRecords = allRecords;
-        //}
-        res.json(filterRecords);
-    }).catch(function(e) {
-        res.json({
-            "error" : e
-        });
-    });
-});
+    var filter = getQueryParams(req.query);
+    if(req.query.hasOwnProperty('limit')) {
+        filter.limit = req.query.limit;
+    }
 
-router.get('/all', function (req, res, next) {
-    aqiRead(false).then(function(allRecords) {
+    aqiRead().then(function(allRecords) {
         res.json(allRecords);
     }).catch(function(e) {
         res.json({
@@ -30,7 +18,7 @@ router.get('/all', function (req, res, next) {
     });
 });
 
-router.get('/all/:id', function (req, res, next) {
+router.get('/:id', function (req, res, next) {
     var id = parseInt(req.params.id);
     console.log(req.param.id);
     var filter = {
@@ -75,8 +63,6 @@ module.exports = router;
 
 
 function getQueryParams(query) {
-    var isValid = false;
-
     var result = {};
     var lat, lng;
     if(query.hasOwnProperty('lat')) {
@@ -88,15 +74,11 @@ function getQueryParams(query) {
     if(lat !== undefined && lng !== undefined) {
         result.lat = lat;
         result.lng = lng;
-        isValid = true;
     }
 
     if(query.hasOwnProperty('limit')) {
         result.limit = parseInt(query.limit);
-        isValid = true;
     }
-
-    result.isValid = isValid;
 
     return result;
 }
