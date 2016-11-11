@@ -22,12 +22,12 @@ router.get('/indiaspend', function(req, res, next) {
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.INDIA_SPEND_CRAWL_TIME);
-    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(1, 'minutes'))
+    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(constants.REFRESH_INTERVAL, 'minutes'))
         recentRequest = true;
 
     if(recentRequest) {
         res.json({
-            "error" : "Last crawl not more than 15 minutes ago. So, not crawling again"
+            "error" : "Last crawl not more than " + constants.REFRESH_INTERVAL + " minutes ago. So, not crawling again"
         });
         return;
     }
