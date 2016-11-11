@@ -1,0 +1,16 @@
+-Persistent Storage on Heroku
+-Add a scheduler on Heroku - Most probably it's chargeable.
+
+
+
+
+
+
+API:
+/api
+	/manual
+		/first				- To insert from previously crawled issource file to 'indiaSpendCrawl'
+		/first/read			- To read the records in 'indiaSpendCrawl'
+		/second				- To insert from 'indiaSpendCrawl' to 'source'
+	/aqi(?lat=12.34&lng=56.78&limit=2)          - All latest aqi data (ordered by minimum distance from lat lng supplied and limited by limit)
+	/aqi/:id(?limit=10)	    - Get all data for the source :id (and limit 10 - optional). Ordered descending by date of recrod
