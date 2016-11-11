@@ -1,6 +1,8 @@
-/node_modules
+node_modules/
 .idea
 npm-debug.log
 *.sqlite
 .DS_Store
-.node-persist/
+.node-persist/storage/*
+
+!.keep
