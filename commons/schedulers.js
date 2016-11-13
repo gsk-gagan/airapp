@@ -9,8 +9,7 @@ module.exports.startScheduler = function(interval) {
     console.log('Starting scheduled tasks in ' + interval/60000 + ' minutes');
 
     //To run when the server starts
-    crawlers.indiaSpendCrawler();
-    crawlers.waqiCrawler();
+    schedulerTasks();
 
     setInterval(function() {
         storage.setItemSync(constants.SCHEDULER.LAST_CRAWL_TIME, moment.utc().add(constants.IST_MINUTES, 'minutes'));
@@ -19,7 +18,12 @@ module.exports.startScheduler = function(interval) {
             count = 1;
         storage.setItemSync(constants.SCHEDULER.CRAWL_COUNT, ++count);
 
-        crawlers.indiaSpendCrawler();
-        crawlers.waqiCrawler();
+        schedulerTasks();
     }, interval);
 };
+
+
+function schedulerTasks() {
+    crawlers.indiaSpendCrawler();
+    crawlers.waqiCrawler();
+}
