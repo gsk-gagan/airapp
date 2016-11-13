@@ -1,6 +1,6 @@
 var https = require('https');
 var moment = require('moment');
-var constants = require('../../commons/constants');
+var constants = require('../constants');
 var db = require('../../db');
 
 var exp = {};

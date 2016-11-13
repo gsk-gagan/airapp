@@ -1,4 +1,4 @@
-var db = require('../../db');
+var db = require('../../../db');
 
 module.exports = function() {
     return new Promise(function(resolve, reject) {

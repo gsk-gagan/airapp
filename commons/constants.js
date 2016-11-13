@@ -16,4 +16,6 @@ data.WAQI_CRAWLER = {
 
 data.IST_MINUTES = 330;
 
+data.SCHEDULER_INTERVAL = 30*60*1000;            //To change this to 30/60 minutes, As in milliseconds
+
 module.exports = data;

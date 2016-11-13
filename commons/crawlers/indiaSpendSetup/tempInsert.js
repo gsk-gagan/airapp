@@ -1,4 +1,4 @@
-var db = require('../../db');
+var db = require('../../../db');
 var inputRecords = require('./issource');
 
 module.exports = function() {
@@ -16,13 +16,10 @@ module.exports = function() {
             });
         });
 
-        db.indiaSpendCrawler
-            .bulkCreate(toInsert)
-            .then(function(record) {
-                resolve(record);
-            })
-            .catch(function(error) {
-                reject(error);
-            });
+        db.indiaSpendCrawler.bulkCreate(toInsert).then(function(record) {
+            resolve(record);
+        }).catch(function(error) {
+            reject(error);
+        });
     });
 };

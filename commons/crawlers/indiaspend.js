@@ -1,6 +1,6 @@
 var http = require('http');
 var moment = require('moment');
-var constants = require('../../commons/constants');
+var constants = require('../constants');
 
 module.exports = function(imei) {
     return new Promise(function(resolve, reject) {

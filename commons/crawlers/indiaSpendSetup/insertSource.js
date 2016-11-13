@@ -1,5 +1,5 @@
-var db = require('../../db');
-var constants = require('../../commons/constants');
+var db = require('../../../db');
+var constants = require('../../constants');
 
 module.exports = function() {
     return new Promise(function(resolve, reject) {

@@ -1,12 +1,14 @@
-var express = require('express');
 var storage = require('node-persist');
 var moment = require('moment');
-var router = express.Router();
-var crawlerFunction = require('../commons/crawlers/indiaspend');
-var db = require('../db');
-var constants = require('../commons/constants');
 
-var waqiCrawlerFunction = require('../commons/crawlers/waqi');
+var db = require('../db');
+var constants = require('./constants');
+
+var indiaSpendCrawlerFunction = require('./crawlers/indiaspend');
+var indiaSpendInsertToCrawlerTable = require('./crawlers/indiaSpendSetup/tempInsert');
+var indiaSpendInsertToSource = require('./crawlers/indiaSpendSetup/insertSource');
+
+var waqiCrawlerFunction = require('./crawlers/waqi');
 
 storage.initSync();
 
@@ -16,7 +18,37 @@ var success = [];
 var hasInserted = false;
 var recentRequest = false;
 
-router.get('/indiaspend', function(req, res, next) {
+function indiaSpendCrawler() {
+    var isFirstCrawl = storage.getItemSync(constants.INDIA_SPEND_OBJ.FIRST_CRAWL);
+    if(isFirstCrawl === undefined || isFirstCrawl === false) {
+        console.log('Starting India Spend Setup');
+        indiaSpendSetup().then(function(message) {
+            console.log(message);
+            storage.setItemSync(constants.INDIA_SPEND_OBJ.FIRST_CRAWL, true);
+            indiaSpendSiteCralwer();
+        }).catch(function(err) {
+            console.log(err);
+        });
+    } else {
+        indiaSpendSiteCralwer();
+    }
+}
+
+function indiaSpendSetup() {
+    return new Promise(function(resolve, reject) {
+        indiaSpendInsertToCrawlerTable().then(function(crawlerRecords) {
+            return indiaSpendInsertToSource();
+        }).then(function(sourceRecords) {
+            resolve('IndiaSpend Setup Successful. Inserted ' + sourceRecords.length + ' source records');
+        }).catch(function(err) {
+            reject(err);
+        });
+    });
+}
+
+function indiaSpendSiteCralwer() {
+    var res = {};
+
     i=0;
     errors=[];
     success=[];
@@ -28,9 +60,10 @@ router.get('/indiaspend', function(req, res, next) {
         recentRequest = true;
 
     if(recentRequest) {
-        res.json({
+        res.json = {
             "error" : "Last crawl not more than " + constants.REFRESH_INTERVAL + " minutes ago. So, not crawling again"
-        });
+        };
+        console.log(res.json);
         return;
     }
 
@@ -44,7 +77,7 @@ router.get('/indiaspend', function(req, res, next) {
         }
     }).then(function(allRecords) {
         allRecords.forEach(function(record) {
-            crawlerFunction(record.sourcecode).then(function(data) {
+            indiaSpendCrawlerFunction(record.sourcecode).then(function(data) {
                 success.push({
                     sourceid : record.id,
                     aqi : data.aqi,
@@ -58,10 +91,11 @@ router.get('/indiaspend', function(req, res, next) {
 
                 console.log('Completed ' + i + '/' + allRecords.length);
                 if(i >= allRecords.length && !hasInserted) {
-                    res.json({
+                    res.json = {
                         "errors" : errors,
                         "success" : success
-                    });
+                    };
+                    console.log(res.json);
                     insertAQI(success);
                     hasInserted = true;
                 }
@@ -74,10 +108,11 @@ router.get('/indiaspend', function(req, res, next) {
 
                 console.log('Completed ' + i + '/' + allRecords.length);
                 if(i >= allRecords.length && !hasInserted) {
-                    res.json({
+                    res.json = {
                         "errors" : errors,
                         "success" : success
-                    });
+                    };
+                    console.log(res.json);
                     insertAQI(success);
                     hasInserted = true;
                 }
@@ -86,9 +121,10 @@ router.get('/indiaspend', function(req, res, next) {
     }).catch(function(e) {
         console.log('ERROR Reading records');
     });
-});
+}
 
-router.get('/waqi', function(req, res, next) {
+function waqiCrawler() {
+    var res = {};
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.WAQI_CRAWLER.CRAWL_TIME);
@@ -96,9 +132,10 @@ router.get('/waqi', function(req, res, next) {
         recentRequest = true;
 
     if(recentRequest) {
-        res.json({
+        res.json = {
             "error" : "Last crawl not more than " + constants.REFRESH_INTERVAL + " minutes ago. So, not crawling again"
-        });
+        };
+        console.log(res.json);
         return;
     }
 
@@ -151,25 +188,26 @@ router.get('/waqi', function(req, res, next) {
 
             sendString += 'Now inserting the data to aqiAll and aqiLatest.\n';
             console.log(sendString);
-            res.json({
+            res.json = {
                 "message" : sendString
-            });
+            };
+            console.log(res.json);
         }).catch(function(err) {
-            res.json({
+            res.json = {
                 "message" : sendString,
                 "error" : err
-            });
+            };
+            console.log(res.json);
         });
     }).catch(function(err) {
-        res.json({
+        res.json = {
             "message" : sendString,
             "error" : err
-        });
+        };
+        console.log(res.json);
     })
+}
 
-});
-
-module.exports = router;
 
 function insertAQI(allRecords) {
     db.aqiAll.bulkCreate(allRecords).then(function(records) {
@@ -192,35 +230,7 @@ function insertLatestAQI(index, allRecords) {
 }
 
 
-//Mainly used to reset all the sources from waqi
-//router.get('/waqi/reset', function(req, res, next) {
-//    var sendString = '';
-//
-//    db.waqiCrawler.destroy({where: {}});
-//    sendString += 'Destroyed WaqiCrawler Table.\n';
-//
-//    db.source.destroy({
-//        where: {
-//            sourcetype: 'waqi'
-//        }
-//    });
-//    sendString += 'Deleted Source records of waqi.\n';
-//
-//    waqiCrawlerFunction.getSources().then(function(allRecords) {
-//        return waqiCrawlerFunction.insertToWaqi(allRecords.data);
-//    }).then(function(insertedRecords) {
-//        sendString += 'Crawled all the sources and inserted to Wqai.\n';
-//        return waqiCrawlerFunction.insertToSource();
-//    }).then(function(insertedRecords) {
-//        sendString += 'Inserted records to source.\n';
-//        res.json({
-//            "done" : sendString,
-//            "records" : insertedRecords
-//        });
-//    }).catch(function(err) {
-//        res.json({
-//            "done" : sendString,
-//            "error" : err
-//        });
-//    });
-//});
+module.exports = {
+    indiaSpendCrawler: indiaSpendCrawler,
+    waqiCrawler: waqiCrawler
+};

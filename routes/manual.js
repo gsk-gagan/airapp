@@ -1,7 +1,7 @@
 var express = require('express');
-var writeTable = require('./manual/tempInsert');
-var readTable = require('./manual/tempRead');
-var insertSourceTable = require('./manual/insertSource');
+var writeTable = require('../commons/crawlers/indiaSpendSetup/tempInsert');
+var readTable = require('../commons/crawlers/indiaSpendSetup/tempRead');
+var insertSourceTable = require('../commons/crawlers/indiaSpendSetup/insertSource');
 var router = express.Router();
 
 router.get('/first', function (req, res, next) {
@@ -24,13 +24,13 @@ router.get('/first', function (req, res, next) {
     });
 });
 
-router.get('/first/read', function(req, res, next) {
-    readTable().then(function(records) {
-        res.json(records);
-    }).catch(function(e) {
-        res.json(e);
-    });
-});
+//router.get('/first/read', function(req, res, next) {
+//    readTable().then(function(records) {
+//        res.json(records);
+//    }).catch(function(e) {
+//        res.json(e);
+//    });
+//});
 
 router.get('/second', function(req, res, next) {
     insertSourceTable().then(function(records) {
