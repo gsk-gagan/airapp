@@ -32,37 +32,39 @@ exp.getSources = function() {
                         body.push(chunk);
                     });
 
-
-
                     response.on('end', function() {
-                        console.log('Completed ' + processedCount + '/' + constants.WAQI_CRAWLER.LIMIT);
-                        var jsonData = JSON.parse(body.join(''));
+                        try {
+                            console.log('Completed ' + processedCount + '/' + constants.WAQI_CRAWLER.LIMIT);
+                            var jsonData = JSON.parse(body.join(''));
 
-                        jsonData.cities.forEach(function(datum) {
-                            var indiana = datum.n.indexOf('Indiana');
-                            var india = datum.n.indexOf('India');
+                            jsonData.cities.forEach(function(datum) {
+                                var indiana = datum.n.indexOf('Indiana');
+                                var india = datum.n.indexOf('India');
 
-                            if(indiana == -1 && india != -1) {
-                                if(datum.a != '-')
-                                results.push({
-                                    x: datum.x,
-                                    name: datum.n,
-                                    lat: datum.g[0],
-                                    lng: datum.g[1],
-                                    aqi: parseInt(datum.a),
-                                    readTime: moment.utc(datum.u, 'YYYY-MM-DD HH:mm:ss').toDate()
-                                    //As we are getting india time and we have said that it's UTC so we don't have to add anything
+                                if(indiana == -1 && india != -1) {
+                                    if(datum.a != '-')
+                                        results.push({
+                                            x: datum.x,
+                                            name: datum.n,
+                                            lat: datum.g[0],
+                                            lng: datum.g[1],
+                                            aqi: parseInt(datum.a),
+                                            readTime: moment.utc(datum.u, 'YYYY-MM-DD HH:mm:ss').toDate()
+                                            //As we are getting india time and we have said that it's UTC so we don't have to add anything
+                                        });
+                                }
+                            });
+
+                            ++processedCount;
+
+                            if(processedCount >= constants.WAQI_CRAWLER.LIMIT) {
+                                resolve({
+                                    data : results,
+                                    errors : errors
                                 });
                             }
-                        });
-
-                        ++processedCount;
-
-                        if(processedCount >= constants.WAQI_CRAWLER.LIMIT) {
-                            resolve({
-                                data : results,
-                                errors : errors
-                            });
+                        } catch(exception) {
+                            reject({"error": exception});
                         }
                     });
                 });
@@ -150,118 +152,5 @@ exp.insertToSource = function() {
         });
     });
 };
-
-//Becoming too complicated so will use the data from above source for now and Erroneous
-//var crawlSuccess = [];
-//var crawlErrors = [];
-//var crawlCount = 0;
-
-//exp.crawlData = function() {
-//    return new Promise(function(resolve, reject) {
-//        crawlSuccess = [];
-//        crawlErrors = [];
-//        crawlCount = 0;
-//
-//        db.source.findAll({
-//            where: {
-//                sourcetype: 'waqi'
-//            }
-//        }).then(function(allRecords) {
-//            allRecords = [allRecords[0]];
-//            allRecords.forEach(function(record) {
-//                var url = 'https://waqi.info/api/widget/@' + record.sourcecode + '/widget.v1.json';
-//                console.log(url);
-//
-//                try {
-//                    var request = https.get(url, function(response) {
-//                        if (response.statusCode < 200 || response.statusCode > 299) {
-//                            reject({'error': 'Failed to load page, status code: ' + response.statusCode});
-//                        }
-//
-//                        var body = [];
-//
-//                        response.on('data', function(chunk) {
-//                            body.push(chunk);
-//                        });
-//
-//                        response.on('end', function() {
-//
-//                            try {
-//                                var receivedData = body.join('');
-//
-//                                console.log('\n\n\n\n\n');
-//                                console.log(receivedData);
-//                                console.log('\n\n\n\n\n');
-//
-//                                var jsonData = JSON.parse(receivedData).rxs.obs[0].msg.model;
-//                                var timeStamp = moment(jsonData.time.v, moment.ISO_8601);
-//                                console.log(jsonData.time.v);
-//                                //console.log(timeStamp);
-//                                var successRecord = {
-//                                    sourceid: record.id,
-//                                    aqi: jsonData.aqi,
-//                                    createtime: timeStamp.toDate()
-//                                };
-//
-//                                jsonData.iaqi.forEach(function(datum) {
-//                                    if(datum.p == 'pm25')
-//                                        successRecord.pm25 = datum.v[0];
-//                                });
-//
-//                                crawlSuccess.push(successRecord);
-//                            } catch(e) {
-//                                crawlErrors.push(e);
-//                            }
-//
-//                            ++crawlCount;
-//                            console.log('Completed ' + crawlCount + '/' + allRecords.length);
-//                            if(crawlCount >= allRecords.length) {
-//                                resolve({
-//                                    "success": crawlSuccess,
-//                                    "error": crawlErrors
-//                                });
-//                            }
-//                        });
-//                    });
-//
-//                    //To handel connection timeout
-//                    request.on('error', function(err) {
-//                        crawlErrors.push(err);
-//                        ++crawlCount;
-//                        console.log('Completed ' + crawlCount + '/' + allRecords.length);
-//                        if(crawlCount >= allRecords.length) {
-//                            resolve({
-//                                "success": crawlSuccess,
-//                                "error": crawlErrors
-//                            });
-//                        }
-//                    });
-//
-//                } catch (e) {
-//                    crawlErrors.push(e);
-//                    ++crawlCount;
-//                    console.log('Completed ' + crawlCount + '/' + allRecords.length);
-//                    if(crawlCount >= allRecords.length) {
-//                        resolve({
-//                            "success": crawlSuccess,
-//                            "error": crawlErrors
-//                        });
-//                    }
-//                }
-//            });
-//
-//        }).catch(function(error) {
-//            crawlErrors.push(error);
-//            ++crawlCount;
-//            console.log('Completed ' + crawlCount + '/' + allRecords.length);
-//            if(crawlCount >= allRecords.length) {
-//                resolve({
-//                    "success": crawlSuccess,
-//                    "error": crawlErrors
-//                });
-//            }
-//        });
-//    });
-//};
 
 module.exports = exp;

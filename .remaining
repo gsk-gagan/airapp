@@ -1,6 +1,4 @@
--Make scheduled crawler
 -Check for normal crawler routes
--Remove manual process, by adding a persistent storage variable and do it in first run automatically
 
 
 
@@ -16,5 +14,3 @@ API:
 	/crawler/waqi           - To crawl waqi site and store the results to 'aqiall' & 'aqilatest'
 	/aqi(?lat=12.34&lng=56.78&limit=2)          - All latest aqi data (ordered by minimum distance from lat lng supplied and limited by limit)
 	/aqi/:id(?limit=10)	    - Get all data for the source :id (and limit 10 - optional). Ordered descending by date of recrod
-
--The scheduled crawling is to run in every 60 minutes. So have the manual setup before that

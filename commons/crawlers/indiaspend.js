@@ -26,13 +26,17 @@ module.exports = function(imei) {
                     });
 
                     response.on('end', function() {
-                        var jsonData = JSON.parse(body.join(''));
-                        var result = insertToDB(jsonData.graphData);
+                        try{
+                            var jsonData = JSON.parse(body.join(''));
+                            var result = insertToDB(jsonData.graphData);
 
-                        if(result.success) {
-                            resolve(result.data);
-                        } else {
-                            reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
+                            if(result.success) {
+                                resolve(result.data);
+                            } else {
+                                reject({"error" : "Unable to convert data. Possibly fields missing. Ignore the data."});
+                            }
+                        } catch(exception) {
+                            reject({"error" : exception});
                         }
                     });
                 });
