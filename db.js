@@ -18,6 +18,7 @@ var db = {};
 
 //Table Definitions
 db.indiaSpendCrawler = sequelize.import(path.join(__dirname, 'models', 'indiaSpendCrawler.js'));
+db.waqiCrawler = sequelize.import(path.join(__dirname, 'models', 'waqiCrawler.js'));
 db.source = sequelize.import(path.join(__dirname, 'models', 'source.js'));
 db.aqiAll = sequelize.import(path.join(__dirname, 'models', 'aqiAll.js'));
 db.aqiLatest = sequelize.import(path.join(__dirname, 'models', 'aqiLatest.js'));
