@@ -20,11 +20,11 @@ var recentRequest = false;
 
 function indiaSpendCrawler() {
     var isFirstCrawl = storage.getItemSync(constants.INDIA_SPEND_OBJ.FIRST_CRAWL);
-    if(isFirstCrawl === undefined || isFirstCrawl === false) {
+    if(isFirstCrawl === undefined || isFirstCrawl === true) {
         console.log('Starting India Spend Setup');
         indiaSpendSetup().then(function(message) {
             console.log(message);
-            storage.setItemSync(constants.INDIA_SPEND_OBJ.FIRST_CRAWL, true);
+            storage.setItemSync(constants.INDIA_SPEND_OBJ.FIRST_CRAWL, false);
             indiaSpendSiteCralwer();
         }).catch(function(err) {
             console.log(err);
