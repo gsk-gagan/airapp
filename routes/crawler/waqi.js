@@ -5,14 +5,14 @@ var db = require('../../db');
 
 var exp = {};
 
-var timeMs = moment();
+var timeMs = moment.utc();
 var processedCount = 0;
 var results = [];
 var errors = [];
 
 exp.getSources = function() {
     return new Promise(function (resolve, reject) {
-        timeMs = moment();
+        timeMs = moment.utc();
         processedCount = 0;
         results = [];
         errors = [];
@@ -50,7 +50,8 @@ exp.getSources = function() {
                                     lat: datum.g[0],
                                     lng: datum.g[1],
                                     aqi: parseInt(datum.a),
-                                    readTime: moment(datum.u, 'YYYY-MM-DD HH:mm:ss').add(330, 'minutes').toDate()
+                                    readTime: moment(datum.u, 'YYYY-MM-DD HH:mm:ss').add(constants.IST_MINUTES, 'minutes').toDate()
+                            //Most Probably toDate converts local time (as we got from the site) to UTC so we are adding beforehand
                                 });
                             }
                         });
