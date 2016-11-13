@@ -10,9 +10,6 @@ var manual = require('./routes/manual');
 var crawler = require('./routes/crawler');
 var aqi = require('./routes/aqi');
 
-var scheduler = require('./commons/schedulers');
-var constants = require('./commons/constants');
-
 var app = express();
 
 // uncomment after placing your favicon in /public
@@ -29,7 +26,6 @@ app.use('/api/manual', manual);
 app.use('/api/aqi', aqi);
 app.use('/api/crawler', crawler);
 
-//Calling the scheduler
-scheduler.startScheduler(constants.SCHEDULER.INTERVAL);
+
 
 module.exports = app;

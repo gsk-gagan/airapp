@@ -36,7 +36,15 @@ function indiaSpendCrawler() {
 
 function indiaSpendSetup() {
     return new Promise(function(resolve, reject) {
-        indiaSpendInsertToCrawlerTable().then(function(crawlerRecords) {
+        db.indiaSpendCrawler.destroy({where : {}}).then(function() {
+            return db.source.destroy({
+                where: {
+                    sourcetype: 'indiaSpend'
+                }
+            });
+        }).then(function() {
+            return indiaSpendInsertToCrawlerTable();
+        }).then(function(crawlerRecords) {
             return indiaSpendInsertToSource();
         }).then(function(sourceRecords) {
             resolve('IndiaSpend Setup Successful. Inserted ' + sourceRecords.length + ' source records');
