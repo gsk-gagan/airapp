@@ -1,3 +1,4 @@
+-Fix timezone in aws
 -Remove manual process, by adding a persistent storage variable and do it in first run automatically
 
 

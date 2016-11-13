@@ -24,7 +24,7 @@ router.get('/indiaspend', function(req, res, next) {
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.INDIA_SPEND_CRAWL_TIME);
-    if(lastCrawlTime != undefined && lastCrawlTime > moment().subtract(constants.REFRESH_INTERVAL, 'minutes'))
+    if(lastCrawlTime !== undefined && lastCrawlTime > moment().subtract(constants.REFRESH_INTERVAL, 'minutes'))
         recentRequest = true;
 
     if(recentRequest) {
@@ -190,7 +190,6 @@ function insertLatestAQI(index, allRecords) {
         insertLatestAQI(++index, allRecords);
     });
 }
-
 
 
 //Mainly used to reset all the sources from waqi

@@ -1,11 +1,12 @@
 var http = require('http');
 var moment = require('moment');
+var constants = require('../../commons/constants');
 
 module.exports = function(imei) {
     return new Promise(function(resolve, reject) {
         if(imei) {
-            var endTime = moment().format('YYYYMMDDHHmmss');
-            var startTime = moment().subtract(1, 'hours').format('YYYYMMDDHHmmss');
+            var endTime = moment.utc().add(constants.IST_MINUTES, 'minutes').format('YYYYMMDDHHmmss');
+            var startTime = moment.utc().add(constants.IST_MINUTES, 'minutes').subtract(1, 'hours').format('YYYYMMDDHHmmss');
 
             var url = 'http://api.indiaspend.org/dashboard/dashboard?imei=' +
                 imei + '&hrs=1&sdate=' + startTime.toString() + '&edate=' + endTime.toString() + '&type=graphJson&flag=graphdata';
