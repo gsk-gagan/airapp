@@ -24,7 +24,7 @@ router.get('/indiaspend', function(req, res, next) {
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.INDIA_SPEND_CRAWL_TIME);
-    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(constants.REFRESH_INTERVAL, 'minutes'))
+    if(lastCrawlTime != undefined && lastCrawlTime > moment().subtract(constants.REFRESH_INTERVAL, 'minutes'))
         recentRequest = true;
 
     if(recentRequest) {
@@ -89,12 +89,10 @@ router.get('/indiaspend', function(req, res, next) {
 });
 
 router.get('/waqi', function(req, res, next) {
-    errors=[];
-    success=[];
     recentRequest = false;
 
     var lastCrawlTime = storage.getItemSync(constants.WAQI_CRAWLER.CRAWL_TIME);
-    if(lastCrawlTime != undefined && lastCrawlTime < moment().add(constants.REFRESH_INTERVAL, 'minutes'))
+    if(lastCrawlTime != undefined && lastCrawlTime > moment().subtract(constants.REFRESH_INTERVAL, 'minutes'))
         recentRequest = true;
 
     if(recentRequest) {
@@ -107,101 +105,76 @@ router.get('/waqi', function(req, res, next) {
     recentRequest = true;
     storage.setItemSync(constants.WAQI_CRAWLER.CRAWL_TIME, moment());
 
-//Read new sources and insert to waqi table
+    //Real Work Begin
     var sendString = '';
 
-    db.waqiCrawler.destroy({where: {}});
+    db.waqiCrawler.destroy({where: {}});                                //Truncate waqi
     sendString += 'Destroyed WaqiCrawler Table.\n';
+    console.log(sendString);
 
-    //Crawl and insert to waqiCrawler table
-    waqiCrawlerFunction.getSources().then(function(allRecords) {
-        return waqiCrawlerFunction.insertToWaqi(allRecords.data);
-    }).then(function(insertedRecords) {
-        //Find all records from source which match
+    waqiCrawlerFunction.getSources().then(function(allRecords) {        //Read from waqi site
+        sendString += 'Read from Waqi site.\n';
+        console.log(sendString);
+        return waqiCrawlerFunction.insertToWaqi(allRecords.data);       //Store to waqiCrawl
+    }).then(function(insertedWaqi) {                                    //Insert the sources which are not present
+        sendString += 'Inserted to WaqiCrawler.\n';
+        console.log(sendString);
+        return waqiCrawlerFunction.insertToSource();
+    }).then(function(insertedSource) {                                  //Read data from source table again
+        sendString += 'Total records inserted to source: ' + insertedSource.length + '.\n';
+        console.log(sendString);
         return db.source.findAll({
             where: {
                 sourcetype: constants.WAQI_CRAWLER.NAME
             }
         });
-    }).then(function(sourceRecords) {
-        var aqiRecords = [];
-        var sourceKV = {};
-        sourceRecords.forEach(function(record) {
-            sourceKV[record.sourcecode] = record.id;
+    }).then(function(allSource) {
+        var sourceNV = {};
+        allSource.forEach(function(source) {
+            sourceNV[source.sourcecode] = source.id;
         });
 
-        db.waqiCrawler.findAll().then(function(waqiRecords) {
-            waqiRecords.forEach(function(record) {
-                if(sourceKV.hasOwnProperty(record.x)) {
-                    aqiRecords.push({
-                        sourceid: sourceKV[record.x],
-                        aqi: record.aqi,
 
+        db.waqiCrawler.findAll().then(function(allWaqi) {
+            var toInsert = [];
+            allWaqi.forEach(function(waqi) {
+                if(sourceNV.hasOwnProperty(waqi.x)) {
+                    toInsert.push({
+                        sourceid: sourceNV[waqi.x],
+                        aqi: waqi.aqi,
+                        createtime: waqi.readTime
                     });
-                } else {
-
                 }
+            });
+
+            insertAQI(toInsert);
+
+            sendString += 'Now inserting the data to aqiAll and aqiLatest.\n';
+            console.log(sendString);
+            res.json({
+                "message" : sendString
             });
         }).catch(function(err) {
             res.json({
-                "done" : sendString,
+                "message" : sendString,
                 "error" : err
             });
         });
     }).catch(function(err) {
         res.json({
-            "done" : sendString,
+            "message" : sendString,
             "error" : err
         });
-    });
+    })
 
-});
-
-//Mainly used to reset all the sources from waqi
-router.get('/waqi/reset', function(req, res, next) {
-    var sendString = '';
-
-    db.waqiCrawler.destroy({where: {}});
-    sendString += 'Destroyed WaqiCrawler Table.\n';
-
-    db.source.destroy({
-        where: {
-            sourcetype: 'waqi'
-        }
-    });
-    sendString += 'Deleted Source records of waqi.\n';
-
-    waqiCrawlerFunction.getSources().then(function(allRecords) {
-        return waqiCrawlerFunction.insertToWaqi(allRecords.data);
-    }).then(function(insertedRecords) {
-        sendString += 'Crawled all the sources and inserted to Wqai.\n';
-        return waqiCrawlerFunction.insertToSource();
-    }).then(function(insertedRecords) {
-        sendString += 'Inserted records to source.\n';
-        res.json({
-            "done" : sendString,
-            "records" : insertedRecords
-        });
-    }).catch(function(err) {
-        res.json({
-            "done" : sendString,
-            "error" : err
-        });
-    });
 });
 
 module.exports = router;
 
 function insertAQI(allRecords) {
-    console.log('Starting Insert to DB');
-
     db.aqiAll.bulkCreate(allRecords).then(function(records) {
-        //console.log('Insert to Source Success');
-        //console.log(records);
         insertLatestAQI(0, allRecords);
     }).catch(function(e) {
-        //console.log('Insert Error');
-        //console.log(e);
         insertLatestAQI(0, allRecords);
     });
 }
@@ -210,12 +183,45 @@ function insertLatestAQI(index, allRecords) {
     if(index >= allRecords.length)
         return;
     db.aqiLatest.upsert(allRecords[index]).then(function(record) {
-        console.log('Insert to Latest AQI');
-        console.log(record);
+        //console.log('Insert to Latest AQI');
+        //console.log(record);
         insertLatestAQI(++index, allRecords);
     }).catch(function(e) {
-        console.log('Unable to UPSERT!!!');
-        console.log(e);
         insertLatestAQI(++index, allRecords);
     });
 }
+
+
+
+//Mainly used to reset all the sources from waqi
+//router.get('/waqi/reset', function(req, res, next) {
+//    var sendString = '';
+//
+//    db.waqiCrawler.destroy({where: {}});
+//    sendString += 'Destroyed WaqiCrawler Table.\n';
+//
+//    db.source.destroy({
+//        where: {
+//            sourcetype: 'waqi'
+//        }
+//    });
+//    sendString += 'Deleted Source records of waqi.\n';
+//
+//    waqiCrawlerFunction.getSources().then(function(allRecords) {
+//        return waqiCrawlerFunction.insertToWaqi(allRecords.data);
+//    }).then(function(insertedRecords) {
+//        sendString += 'Crawled all the sources and inserted to Wqai.\n';
+//        return waqiCrawlerFunction.insertToSource();
+//    }).then(function(insertedRecords) {
+//        sendString += 'Inserted records to source.\n';
+//        res.json({
+//            "done" : sendString,
+//            "records" : insertedRecords
+//        });
+//    }).catch(function(err) {
+//        res.json({
+//            "done" : sendString,
+//            "error" : err
+//        });
+//    });
+//});

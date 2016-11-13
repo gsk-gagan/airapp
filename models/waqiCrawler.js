@@ -23,6 +23,10 @@ module.exports = function(sequelize, DataTypes) {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: -1
+        },
+        readTime : {
+            type: DataTypes.DATE,
+            allowNull: false
         }
     });
 };

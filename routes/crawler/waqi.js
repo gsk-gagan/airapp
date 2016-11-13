@@ -48,7 +48,8 @@ exp.getSources = function() {
                                     name: datum.n,
                                     lat: datum.g[0],
                                     lng: datum.g[1],
-                                    aqi: (datum.a == '-' ? -1 : parseInt(datum.a))
+                                    aqi: (datum.a == '-' ? -1 : parseInt(datum.a)),
+                                    readTime: moment(datum.u, 'YYYY-MM-DD HH:mm:ss').add(330, 'minutes').toDate()
                                 });
                             }
                         });
@@ -106,29 +107,45 @@ exp.insertToWaqi = function(allRecords) {
 
 exp.insertToSource = function() {
     return new Promise(function(resolve, reject) {
-        db.waqiCrawler.findAll({
+        db.source.findAll({                                 //Read data from source table
+            attributes: ['sourcecode'],
             where: {
-                aqi : {$ne: -1}
+                sourcetype: constants.WAQI_CRAWLER.NAME
             }
-        }).then(function(allRecords) {
-            console.log('Found records ' + allRecords.length);
+        }).then(function(allSource) {                       //Segegrate waqiCrawl table data into the ones which are not present in the source
+            console.log('--GSK: Found Source : ' + allSource.length);
+            var notIn = [];
+            allSource.forEach(function(source) {
+                notIn.push(source.sourcecode);
+            });
+            if(allSource.length === 0) {
+                return db.waqiCrawler.findAll();
+            }
+            return db.waqiCrawler.findAll({
+                where: {
+                    x: {
+                        $notIn: notIn
+                    }
+                }
+            });
+        }).then(function(allWaqi) {                         //Insert the ones not present to the source table
+            console.log('--GSK: Found Waqi to Insert : ' + allWaqi.length);
             var toInsert = [];
-            allRecords.forEach(function(record) {
+            allWaqi.forEach(function(waqi) {
                 toInsert.push({
-                    sourcecode: record.x,
-                    sourcetype: 'waqi',
-                    lat: record.lat,
-                    lng: record.lng
+                    sourcecode: waqi.x,
+                    sourcetype: constants.WAQI_CRAWLER.NAME,
+                    lat: waqi.lat,
+                    lng: waqi.lng
                 });
             });
             return db.source.bulkCreate(toInsert);
-        }).then(function(insertedRecords) {
-            resolve(insertedRecords);
-        }).catch(function(e) {
-            reject({
-                "error" : e
-            });
-        })
+        }).then(function(insertedSource) {
+            console.log('--GSK: Inserted to Source : ' + insertedSource.length);
+            resolve(insertedSource);
+        }).catch(function(err) {
+            reject(err);
+        });
     });
 };
 
