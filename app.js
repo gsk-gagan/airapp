@@ -30,6 +30,6 @@ app.use('/api/aqi', aqi);
 app.use('/api/crawler', crawler);
 
 //Calling the scheduler
-scheduler.startScheduler(constants.SCHEDULER_INTERVAL);
+scheduler.startScheduler(constants.SCHEDULER.INTERVAL);
 
 module.exports = app;
