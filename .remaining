@@ -1,6 +1,4 @@
--Persistent Storage on Heroku
--Add a scheduler on Heroku - Most probably it's chargeable.
--Look how to setup AWS
+-Remove manual process, by adding a persistent storage variable and do it in first run automatically
 
 
 

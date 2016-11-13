@@ -43,12 +43,13 @@ exp.getSources = function() {
                             var india = datum.n.indexOf('India');
 
                             if(indiana == -1 && india != -1) {
+                                if(datum.a != '-')
                                 results.push({
                                     x: datum.x,
                                     name: datum.n,
                                     lat: datum.g[0],
                                     lng: datum.g[1],
-                                    aqi: (datum.a == '-' ? -1 : parseInt(datum.a)),
+                                    aqi: parseInt(datum.a),
                                     readTime: moment(datum.u, 'YYYY-MM-DD HH:mm:ss').add(330, 'minutes').toDate()
                                 });
                             }
