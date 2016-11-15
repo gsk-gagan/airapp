@@ -20,6 +20,7 @@ module.exports = function() {
                 var result = [];
                 allData.forEach(function(datum) {
                     var res = {
+                        id: datum.sourceid,
                         lat : sourceMap[datum.sourceid].lat,
                         lng : sourceMap[datum.sourceid].lng,
                         aqi : datum.aqi,
