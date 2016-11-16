@@ -1,4 +1,5 @@
-
+Add an api to get the data lying within a specific interval (Both start and end of the interval specified)
+    Average parameter to give only one value (which will be the average value for a given source)
 
 
 

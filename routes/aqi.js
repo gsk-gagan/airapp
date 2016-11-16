@@ -1,13 +1,30 @@
 var express = require('express');
 var router = express.Router();
+var json2csv = require('json2csv');
 var aqiRead = require('./aqi/aqiRead');
 var db = require('../db');
+var filterHelper = require('./aqi/filterHelper');
 
 router.get('/', function (req, res, next) {
-    var filter = getQueryParams(req.query);
+    var filter = filterHelper.getQueryParams(req.query);
 
     aqiRead().then(function(allRecords) {
-        res.json(filterResult(allRecords, filter));
+        var fResults = filterHelper.filterResult(allRecords, filter);
+        if(filter.hasOwnProperty('csv') && filter.csv === true) {
+            var fields = ['id', 'lat', 'lng', 'aqi', 'pm25', 'pm10', 'windspeed', 'winddirection', 'updatetime'];
+            var result = json2csv({data: fResults, fields: fields});
+
+            var header = { 'Content-Type': 'text/plane' };
+            var fileName = (new Date()).toISOString();
+            if(filter.hasOwnProperty('download') && filter.download === true)
+                header = {
+                    'Content-Type': 'application/force-download',
+                    'Content-disposition':'attachment; filename=' + fileName + '.csv'};
+            res.writeHead(200, header);
+            res.end(result);
+        } else {
+            res.json(fResults);
+        }
     }).catch(function(e) {
         res.json({
             "error" : e
@@ -39,11 +56,27 @@ router.get('/:id', function (req, res, next) {
                     pm10 : record.pm10,
                     windspeed : record.windspeed,
                     winddirection : record.winddirection,
-                    updatetime : record.createtime
+                    updatetime : record.createtime.toISOString()
                 });
             });
 
-            res.json(result);
+            if(req.query.hasOwnProperty('csv') && req.query.csv === 'true') {
+                var fields = ['lat', 'lng', 'aqi', 'pm25', 'pm10', 'windspeed', 'winddirection', 'updatetime'];
+                var csvResult = json2csv({data: result, fields: fields});
+
+                var header = { 'Content-Type': 'text/plane' };
+                var fileName = id + '_' + (new Date()).toISOString();
+                if(req.query.hasOwnProperty('download') && req.query.download === 'true') {
+                    header = {
+                        'Content-Type': 'application/force-download',
+                        'Content-disposition':'attachment; filename=' + fileName + '.csv'
+                    };
+                }
+                res.writeHead(200, header);
+                res.end(csvResult);
+            } else {
+                res.json(result);
+            }
         }).catch(function(e){
             res.json({
                 "error" : e
@@ -57,50 +90,3 @@ router.get('/:id', function (req, res, next) {
 });
 
 module.exports = router;
-
-
-function getQueryParams(query) {
-    var result = {};
-    var lat, lng;
-    if(query.hasOwnProperty('lat')) {
-        lat = parseFloat(query.lat);
-    }
-    if(query.hasOwnProperty('lng')) {
-        lng = parseFloat(query.lng);
-    }
-    if(lat !== undefined && lng !== undefined) {
-        result.lat = lat;
-        result.lng = lng;
-    }
-
-    if(query.hasOwnProperty('limit')) {
-        result.limit = parseInt(query.limit);
-    }
-
-    return result;
-}
-
-function filterResult(allRecords, filter) {
-    var tempResult;
-    var result = [];
-    //filter all based on lat lng and order appropriately
-    if(filter.hasOwnProperty('lat')) {
-        tempResult = allRecords.sort(function(a, b) {
-            var disa = ((a.lat - filter.lat)*(a.lat - filter.lat)) + ((a.lng - filter.lng)*(a.lng - filter.lng));
-            var disb = ((b.lat - filter.lat)*(b.lat - filter.lat)) + ((b.lng - filter.lng)*(b.lng - filter.lng));
-            return disa-disb;
-        });
-    } else {
-        tempResult = allRecords;
-    }
-    //limit the number of results
-    if(filter.hasOwnProperty('limit')) {
-        for(var i=0; i<allRecords.length && i<filter.limit; i++) {
-            result.push(tempResult[i]);
-        }
-    } else {
-        result = tempResult;
-    }
-
-    return result;
-}

@@ -28,7 +28,7 @@ module.exports = function() {
                         pm10 : datum.pm10,
                         windspeed : datum.windspeed,
                         winddirection : datum.winddirection,
-                        updatetime : datum.createtime
+                        updatetime : datum.createtime.toISOString()
                     };
                     result.push(res);
                 });
